@@ -8,7 +8,7 @@ Repo này đóng gói toàn bộ tool `vn169` + web dashboard để deploy onlin
 ├── vn169-web/          # backend Express + dashboard UI
 ├── render.yaml         # blueprint deploy Render (free)
 ├── Dockerfile          # cho Koyeb/Fly/VPS/Hugging Face Spaces
-└── .github/workflows/keepalive.yml  # ping giữ Render không sleep
+└── docs/keepalive.yml  # mẫu workflow ping giữ Render không sleep
 ```
 
 ---
@@ -57,11 +57,19 @@ Repo này đóng gói toàn bộ tool `vn169` + web dashboard để deploy onlin
 
 ## 3. Giữ Render không sleep (free)
 
-Render free spin down sau 15 phút không request → watcher dừng. Dùng GitHub Actions ping:
+Render free spin down sau 15 phút không request → watcher dừng. Có 2 cách:
 
-1. Vào repo GitHub → **Settings → Secrets and variables → Actions → Variables**.
-2. Tạo variable `APP_URL` = `https://vn169-control.onrender.com`.
-3. Workflow `.github/workflows/keepalive.yml` chạy mỗi 10 phút, gọi `/api/health`.
+### Cách A: cron-job.org / UptimeRobot (dễ nhất)
+
+1. Tạo monitor HTTP GET tới `https://vn169-control.onrender.com/api/health`.
+2. Interval 5–10 phút.
+3. Bật monitor.
+
+### Cách B: GitHub Actions
+
+1. Trên GitHub, vào **Add file → Create new file**, tạo `.github/workflows/keepalive.yml` và dán nội dung file `docs/keepalive.yml`.
+2. Vào **Settings → Secrets and variables → Actions → Variables**, tạo `APP_URL` = URL Render.
+3. Workflow chạy mỗi 10 phút, gọi `/api/health`.
 
 Lưu ý:
 - GitHub Actions cron có thể trễ vài phút; nếu Render đã sleep, request đầu tiên sẽ đánh thức (cold start 30–60s).
