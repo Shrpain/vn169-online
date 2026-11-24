@@ -1,0 +1,13 @@
+{
+  "name": "vn169-online",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VN169 online dashboard (Telegram watcher + DropAI) - deploy Render/Koyeb/VPS",
+  "scripts": {
+    "build": "npm --prefix vn169 ci && npm --prefix vn169-web ci",
+    "start": "node vn169-web/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

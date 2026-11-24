@@ -1,11 +1,16 @@
 # VN169 Online — chạy tool 24/7 miễn phí
 
-Repo này đóng gói toàn bộ tool `vn169` + web dashboard để deploy online:
+**Deploy 1 click (Render free):**
+
+### 👉 https://render.com/deploy?repo=https://github.com/Shrpain/vn169-online
+
+Repo này đóng gói toàn bộ tool `vn169` + web dashboard (UI + API cùng một URL sau khi deploy):
 
 ```
 .
 ├── vn169/              # tool gốc (watcher, DropAPI, bot Telegram, login)
 ├── vn169-web/          # backend Express + dashboard UI
+├── package.json        # script build/start cho Render
 ├── render.yaml         # blueprint deploy Render (free)
 ├── Dockerfile          # cho Koyeb/Fly/VPS/Hugging Face Spaces
 └── docs/keepalive.yml  # mẫu workflow ping giữ Render không sleep
@@ -19,15 +24,15 @@ Repo này đóng gói toàn bộ tool `vn169` + web dashboard để deploy onlin
 
    **https://render.com/deploy?repo=https://github.com/Shrpain/vn169-online**
 
-2. Đăng nhập Render bằng GitHub → **Apply**.
+2. Đăng nhập Render bằng GitHub → chọn repo `Shrpain/vn169-online` → **Apply**.
 3. Chờ build (~2–4 phút). Render tạo service `vn169-control` với URL dạng:
 
-   `https://vn169-control.onrender.com`
+   `https://vn169-control.onrender.com` (có thể kèm hậu tố ngẫu nhiên)
 
 4. Vào **Dashboard → service → Environment**, copy giá trị `ADMIN_TOKEN` (Render tự generate).
-5. Mở URL, bấm **Token**, dán `ADMIN_TOKEN`.
+5. Mở URL Render, bấm **Token**, dán `ADMIN_TOKEN` → dashboard dùng được ngay (UI + API cùng origin, không cần Vercel).
 
-> Render free spin down sau 15 phút không có request. Workflow keep-alive trong repo sẽ ping mỗi 10 phút — xem mục 3.
+> Render free spin down sau 15 phút không có request → watcher dừng. Thêm keep-alive (mục 3) để giữ chạy 24/7.
 
 ---
 
