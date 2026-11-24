@@ -81,11 +81,24 @@ Lưu ý:
 - Scheduled workflow có thể bị tắt sau 60 ngày repo không hoạt động; vào **Actions → Keep Render awake → Run workflow** để bật lại.
 - Render free có 750 giờ/tháng; chạy 24/7 ≈ 730 giờ → vừa đủ 1 service.
 
+### Giới hạn của Render free (đọc trước khi dùng tiền thật)
+
+| Giới hạn | Ảnh hưởng |
+|---|---|
+| Sleep sau 15 phút không request | Watcher dừng giữa chừng nếu keep-alive fail. Phải có monitor ping. |
+| Filesystem tạm | `watcher_state.json`, `telegram_session.txt` mất sau restart/sleep. Session đã có env; còn state (lãi/lỗ ngày, pause) **reset** → giới hạn lỗ cũng reset. |
+| 0.1 CPU / 512MB | Đủ cho polling, nhưng chậm khi build. |
+| 750 giờ/tháng | Chạy 24/7 gần như dùng hết quota. |
+
+Nếu chạy tiền thật 24/7, nên dùng **Render Starter ($7/tháng)** hoặc **Oracle Cloud Always Free VM** (miễn phí, không sleep, cần thẻ để verify) chạy Docker ở mục 5.
+
 ---
 
 ## 4. Nối UI Vercel (tuỳ chọn)
 
-Nếu muốn dashboard riêng trên Vercel:
+Dashboard đã có nút **Token** → modal **Kết nối backend**, cho phép nhập URL backend Render/VPS ngay trên UI (lưu localStorage). Không cần sửa file.
+
+Nếu muốn cố định backend mặc định:
 
 1. Sửa `vn169-web/public/config.js`:
    ```js
