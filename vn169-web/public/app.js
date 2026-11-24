@@ -2,12 +2,18 @@
 
 const $ = (id) => document.getElementById(id);
 
-// Backend có thể nằm khác origin (ví dụ UI trên Vercel, backend trên VPS).
-// Đặt window.VN169_API_BASE trong config.js; để trống nếu cùng origin.
-const API_BASE = String(window.VN169_API_BASE || "").replace(/\/+$/, "");
+// Backend có thể nằm khác origin (ví dụ UI trên Vercel, backend trên Render/VPS).
+// Thứ tự: localStorage (nhập trong modal Kết nối) > window.VN169_API_BASE (config.js) > cùng origin.
+function resolveApiBase() {
+  const stored = localStorage.getItem("vn169_api_base");
+  const configured = window.VN169_API_BASE || "";
+  return String(stored !== null ? stored : configured).replace(/\/+$/, "");
+}
+
+let apiBase = resolveApiBase();
 
 function apiUrl(path) {
-  return `${API_BASE}${path}`;
+  return `${apiBase}${path}`;
 }
 
 const PAUSE_LABELS = {
@@ -91,10 +97,23 @@ async function api(path, options = {}) {
   if (options.body && !headers["Content-Type"]) headers["Content-Type"] = "application/json";
   if (app.token) headers["x-admin-token"] = app.token;
 
-  const response = await fetch(apiUrl(path), { ...options, headers });
+  let response;
+  try {
+    response = await fetch(apiUrl(path), { ...options, headers });
+  } catch {
+    showTokenModal();
+    throw new Error("Không kết nối được backend. Kiểm tra URL backend trong modal Kết nối.");
+  }
+
   if (response.status === 401) {
     showTokenModal();
     throw new Error("Unauthorized");
+  }
+
+  if (response.status === 404 && !apiBase) {
+    // UI tĩnh (Vercel) không có API — hướng dẫn nhập URL backend.
+    showTokenModal();
+    throw new Error("Chưa cấu hình backend URL");
   }
 
   const json = await response.json().catch(() => null);
@@ -558,8 +577,33 @@ function bindTabs() {
 }
 
 function showTokenModal() {
+  $("apiBaseInput").value = apiBase;
   $("tokenModal").classList.remove("hidden");
-  $("tokenInput").focus();
+  if (apiBase) {
+    $("tokenInput").focus();
+  } else {
+    $("apiBaseInput").focus();
+  }
+}
+
+function saveConnectionInputs() {
+  const nextBase = $("apiBaseInput").value.trim().replace(/\/+$/, "");
+  const baseChanged = nextBase !== apiBase;
+  apiBase = nextBase;
+  if (nextBase) {
+    localStorage.setItem("vn169_api_base", nextBase);
+  } else {
+    localStorage.removeItem("vn169_api_base");
+  }
+
+  app.token = $("tokenInput").value.trim();
+  if (app.token) {
+    localStorage.setItem("vn169_admin_token", app.token);
+  } else {
+    localStorage.removeItem("vn169_admin_token");
+  }
+
+  return baseChanged;
 }
 
 function bindToken() {
@@ -569,16 +613,20 @@ function bindToken() {
   });
 
   $("tokenSaveBtn").addEventListener("click", async () => {
-    app.token = $("tokenInput").value.trim();
-    if (app.token) {
-      localStorage.setItem("vn169_admin_token", app.token);
-    } else {
-      localStorage.removeItem("vn169_admin_token");
-    }
+    const baseChanged = saveConnectionInputs();
     $("tokenModal").classList.add("hidden");
+    if (baseChanged) {
+      location.reload();
+      return;
+    }
     connectLogs();
     await refreshStatus();
     await loadInitialLogs();
+  });
+
+  $("connSaveBtn").addEventListener("click", () => {
+    saveConnectionInputs();
+    location.reload();
   });
 
   $("tokenInput").addEventListener("keydown", (event) => {

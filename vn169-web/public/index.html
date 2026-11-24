@@ -261,10 +261,19 @@
     <!-- ============================ TOKEN MODAL ============================ -->
     <div id="tokenModal" class="modal hidden">
       <div class="modal-card">
+        <h3>Kết nối backend</h3>
+        <p class="hint">
+          UI tĩnh (Vercel) cần URL của backend chạy <code>server.js</code> (Render/VPS). Để trống nếu bạn mở dashboard
+          trực tiếp từ backend.
+        </p>
+        <input id="apiBaseInput" type="url" placeholder="https://vn169-control.onrender.com" autocomplete="off" />
+
         <h3>Nhập ADMIN_TOKEN</h3>
         <p class="hint">Token được cấu hình ở biến môi trường <code>ADMIN_TOKEN</code> của server. Lưu trong trình duyệt này.</p>
         <input id="tokenInput" type="password" placeholder="ADMIN_TOKEN" autocomplete="off" />
+
         <div class="row end">
+          <button id="connSaveBtn" class="ghost" type="button">Lưu kết nối</button>
           <button id="tokenSaveBtn" class="primary" type="button">Lưu</button>
         </div>
       </div>
