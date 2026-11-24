@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/benhb/.claude/skills/playwright-skill/**)",
+      "Bash(node run.js /tmp/playwright-login-elements.js)",
+      "Bash(node /tmp/playwright-login-fetch.js)"
+    ]
+  }
+}

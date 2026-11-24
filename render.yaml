@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: vn169-control
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm --prefix vn169 ci && npm --prefix vn169-web ci
+    startCommand: node vn169-web/server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: HOST
+        value: 0.0.0.0
+      - key: WATCHER_DIR
+        value: /opt/render/project/src/vn169
+      - key: AUTO_START
+        value: "1"
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: BET_STEPS
+        value: 1-2-4-8-16
+      # Them sau khi dang nhap / export session trong dashboard:
+      # TELEGRAM_API_ID, TELEGRAM_API_HASH, TELEGRAM_PHONE, TELEGRAM_SESSION,
+      # DROP_USERNAME, DROP_PASSWORD, BOT_TOKEN

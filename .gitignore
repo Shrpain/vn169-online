@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Runtime state / secrets
+telegram_session.txt
+telegram_config.json
+dropai_auth.json
+bot.txt
+bot_chat.json
+watcher_state.json
+watcher.lock
+bot_poll.lock
+logs/
+*.log
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel/
+
+# OS
+.DS_Store
+Thumbs.db

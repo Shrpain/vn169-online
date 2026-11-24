@@ -1,0 +1,14 @@
+{
+  "name": "telegram-group-tool",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node watch_group_messages.js",
+    "watch": "node watch_group_messages.js"
+  },
+  "dependencies": {
+    "input": "^1.0.1",
+    "telegram": "^2.26.22"
+  }
+}

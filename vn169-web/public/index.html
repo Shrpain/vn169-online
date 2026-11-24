@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VN169 Control Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">◆</span>
+        <span>VN169 Control</span>
+      </div>
+      <div class="topbar-right">
+        <span id="connDot" class="dot offline"></span>
+        <span id="connText">Đang kết nối…</span>
+        <button id="tokenBtn" class="ghost small" type="button">Token</button>
+      </div>
+    </header>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-tab="overview" type="button">Tổng quan</button>
+      <button class="tab" data-tab="config" type="button">Cấu hình</button>
+      <button class="tab" data-tab="login" type="button">Đăng nhập</button>
+      <button class="tab" data-tab="settings" type="button">Cài đặt</button>
+      <button class="tab" data-tab="logs" type="button">Logs</button>
+    </nav>
+
+    <main>
+      <!-- ============================ OVERVIEW ============================ -->
+      <section id="tab-overview" class="tab-panel active">
+        <div class="grid cards">
+          <article class="card">
+            <div class="card-label">Trạng thái tool</div>
+            <div class="card-value"><span id="runPill" class="pill stopped">STOPPED</span></div>
+            <div class="card-sub" id="runMeta">PID: — · Uptime: —</div>
+          </article>
+
+          <article class="card">
+            <div class="card-label">Số dư hiện tại</div>
+            <div class="card-value" id="balanceValue">—</div>
+            <div class="card-sub">
+              <button id="refreshBalanceBtn" class="ghost tiny" type="button">Làm mới</button>
+              <span id="balanceNote"></span>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-label">Lãi hôm nay</div>
+            <div class="card-value" id="dayProfitValue">—</div>
+            <div class="card-sub" id="dayProfitSub">Mục tiêu: —</div>
+          </article>
+
+          <article class="card">
+            <div class="card-label">Lãi giờ này</div>
+            <div class="card-value" id="hourProfitValue">—</div>
+            <div class="card-sub" id="hourProfitSub">Mục tiêu: —</div>
+          </article>
+
+          <article class="card">
+            <div class="card-label">Dãy hệ số cược</div>
+            <div class="card-value" id="stepsValue">—</div>
+            <div class="card-sub" id="stepsSub">Dãy hệ số: —</div>
+          </article>
+
+          <article class="card">
+            <div class="card-label">Tạm dừng</div>
+            <div class="card-value small-value" id="pauseValue">Không</div>
+            <div class="card-sub" id="pauseSub">—</div>
+          </article>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Điều khiển</h2>
+            <span class="muted" id="controlNote"></span>
+          </div>
+          <div class="row">
+            <button id="startBtn" class="primary" type="button">▶ Start</button>
+            <button id="stopBtn" class="danger" type="button">■ Stop</button>
+            <button id="restartBtn" class="warn" type="button">↻ Restart</button>
+            <button id="refreshStatusBtn" class="ghost" type="button">Làm mới trạng thái</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Log gần đây</h2>
+            <a class="link" href="#" data-goto="logs">Xem tất cả →</a>
+          </div>
+          <pre id="miniLog" class="logbox mini"></pre>
+        </div>
+      </section>
+
+      <!-- ============================ CONFIG ============================ -->
+      <section id="tab-config" class="tab-panel">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Cấu hình Telegram</h2>
+          </div>
+          <p class="hint">
+            Lấy <code>api_id</code> / <code>api_hash</code> tại
+            <a href="https://my.telegram.org" target="_blank" rel="noreferrer">my.telegram.org</a>.
+            Session sẽ được tạo ở tab <b>Đăng nhập</b>.
+          </p>
+          <form id="configForm" class="form-grid">
+            <label>
+              <span>API ID</span>
+              <input id="apiId" name="apiId" inputmode="numeric" placeholder="12345678" autocomplete="off" />
+            </label>
+            <label>
+              <span>Số điện thoại</span>
+              <input id="phone" name="phone" placeholder="+8490xxxxxxx" autocomplete="off" />
+            </label>
+            <label class="span-2">
+              <span>API Hash</span>
+              <input id="apiHash" name="apiHash" placeholder="để trống nếu không đổi" autocomplete="off" />
+            </label>
+            <label class="span-2">
+              <span>Session string (tuỳ chọn — dán nếu đã có)</span>
+              <textarea id="session" name="session" rows="3" placeholder="Để trống để giữ session hiện tại"></textarea>
+            </label>
+
+            <div class="divider span-2"></div>
+
+            <label>
+              <span>Tài khoản game (Drop)</span>
+              <input id="dropUsername" name="dropUsername" placeholder="username" autocomplete="off" />
+            </label>
+            <label>
+              <span>Mật khẩu game</span>
+              <input id="dropPassword" name="dropPassword" type="password" placeholder="để trống nếu không đổi" autocomplete="new-password" />
+            </label>
+            <label class="span-2">
+              <span>Telegram bot token</span>
+              <input id="botToken" name="botToken" type="password" placeholder="để trống nếu không đổi" autocomplete="new-password" />
+            </label>
+
+            <div class="form-actions span-2">
+              <button class="primary" type="submit">Lưu cấu hình</button>
+              <span class="muted" id="configNote"></span>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Session để chạy cloud</h2>
+          </div>
+          <p class="hint">
+            Filesystem của Render free là tạm. Sau khi đăng nhập, bấm <b>Xuất session</b> rồi lưu chuỗi này vào env
+            <code>TELEGRAM_SESSION</code> trên Render để không phải đăng nhập lại sau mỗi lần restart.
+            Đây là thông tin nhạy cảm — không chia sẻ công khai.
+          </p>
+          <textarea id="sessionExport" rows="5" readonly placeholder="Bấm Xuất session..."></textarea>
+          <div class="row" style="margin-top: 10px">
+            <button id="exportSessionBtn" class="ghost" type="button">Xuất session</button>
+            <button id="copySessionBtn" class="ghost" type="button">Copy session</button>
+            <button id="copySessionJsonBtn" class="ghost" type="button">Copy JSON</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ LOGIN ============================ -->
+      <section id="tab-login" class="tab-panel">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Đăng nhập Telegram</h2>
+            <span id="loginPill" class="pill stopped">IDLE</span>
+          </div>
+          <p class="hint">
+            Bấm <b>Bắt đầu đăng nhập</b>, sau đó nhập mã xác minh (và mật khẩu 2FA nếu có) vào ô bên dưới.
+            Cần lưu <code>api_id</code> / <code>api_hash</code> / <code>phone</code> ở tab Cấu hình trước.
+          </p>
+          <div class="row">
+            <button id="loginStartBtn" class="primary" type="button">Bắt đầu đăng nhập</button>
+            <button id="loginCancelBtn" class="danger" type="button">Huỷ</button>
+          </div>
+
+          <pre id="loginLog" class="logbox login"></pre>
+
+          <div class="input-row">
+            <input id="loginInput" placeholder="Nhập mã xác minh / mật khẩu 2FA rồi Enter" autocomplete="one-time-code" />
+            <button id="loginSendBtn" class="primary" type="button">Gửi</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================ SETTINGS ============================ -->
+      <section id="tab-settings" class="tab-panel">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Chiến lược cược</h2>
+          </div>
+          <p class="hint">Cài đặt được ghi vào <code>watcher_state.json</code> và áp dụng sau khi <b>Restart</b>.</p>
+          <form id="settingsForm" class="form-grid">
+            <label class="span-2">
+              <span>Dãy hệ số (cách nhau bởi dấu -)</span>
+              <input id="betSteps" name="betSteps" placeholder="1-2-4-8-16" autocomplete="off" />
+            </label>
+            <label>
+              <span>Mục tiêu lãi ngày (đ)</span>
+              <input id="targetDayProfit" name="targetDayProfit" inputmode="numeric" placeholder="299000" />
+            </label>
+            <label>
+              <span>Mục tiêu lãi giờ (đ)</span>
+              <input id="targetHourProfit" name="targetHourProfit" inputmode="numeric" placeholder="30000" />
+            </label>
+            <label>
+              <span>Giới hạn lỗ ngày (đ)</span>
+              <input id="dayLossLimit" name="dayLossLimit" inputmode="numeric" placeholder="100000" />
+            </label>
+            <label>
+              <span>Giới hạn lỗ giờ (đ)</span>
+              <input id="hourLossLimit" name="hourLossLimit" inputmode="numeric" placeholder="10000" />
+            </label>
+            <div class="form-actions span-2">
+              <button class="primary" type="submit">Lưu cài đặt</button>
+              <span class="muted" id="settingsNote"></span>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Logic cược</h2>
+          </div>
+          <ul class="logic-list">
+            <li><b>THẮNG 1 kỳ</b>: giữ nguyên bậc.</li>
+            <li><b>THẮNG 2 kỳ liên tiếp</b>: tăng 1 bậc (trừ khi đang ở bậc cuối).</li>
+            <li><b>THẮNG 3 kỳ liên tiếp</b>: về bậc 1 (chốt lãi).</li>
+            <li><b>THUA</b>: về bậc 1.</li>
+            <li>Mỗi đơn vị hệ số = <b>1.000đ</b>.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============================ LOGS ============================ -->
+      <section id="tab-logs" class="tab-panel">
+        <div class="panel grow">
+          <div class="panel-head">
+            <h2>Logs</h2>
+            <div class="row tight">
+              <select id="logFilter" class="select">
+                <option value="all">Tất cả nguồn</option>
+                <option value="stdout">stdout</option>
+                <option value="stderr">stderr</option>
+                <option value="login">login</option>
+                <option value="web">web</option>
+              </select>
+              <label class="check"><input id="autoScroll" type="checkbox" checked /> Tự cuộn</label>
+              <button id="clearLogsBtn" class="ghost small" type="button">Xoá màn hình</button>
+            </div>
+          </div>
+          <pre id="logBox" class="logbox full"></pre>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============================ TOKEN MODAL ============================ -->
+    <div id="tokenModal" class="modal hidden">
+      <div class="modal-card">
+        <h3>Nhập ADMIN_TOKEN</h3>
+        <p class="hint">Token được cấu hình ở biến môi trường <code>ADMIN_TOKEN</code> của server. Lưu trong trình duyệt này.</p>
+        <input id="tokenInput" type="password" placeholder="ADMIN_TOKEN" autocomplete="off" />
+        <div class="row end">
+          <button id="tokenSaveBtn" class="primary" type="button">Lưu</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

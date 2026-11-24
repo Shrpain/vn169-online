@@ -1,0 +1,25 @@
+# Secrets / runtime state
+telegram_session.txt
+main_account_session.txt
+telegram_config.json
+dropai_auth.json
+bot.txt
+bot_chat.json
+watcher_state.json
+watcher.lock
+bot_poll.lock
+dropai_auth.json.tmp
+
+# Logs
+logs/
+*.log
+
+# Node
+node_modules/
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Temp
+*.tmp
