@@ -162,6 +162,15 @@ function validateWatcherConfig() {
   if (!session.api_id || !session.api_hash || !session.phone) {
     return "Thieu api_id / api_hash / phone. Hay luu cau hinh Telegram truoc.";
   }
+  if (!/^\d+$/.test(String(session.api_id))) {
+    return "api_id khong hop le (phai la day so). Kiem tra lai tai my.telegram.org.";
+  }
+  if (!/^[0-9a-f]{32}$/i.test(String(session.api_hash))) {
+    return "api_hash khong hop le (phai gom 32 ky tu hex). Kiem tra lai tai my.telegram.org.";
+  }
+  if (!/^\+\d{8,15}$/.test(String(session.phone))) {
+    return "So dien thoai Telegram dang luu khong hop le (co the bi mask +84***567). Vao tab Cau hinh nhap lai so day du +8490xxxxxxx.";
+  }
   return null;
 }
 
@@ -325,9 +334,10 @@ app.post("/api/config", requireAuth, (req, res) => {
     return res.status(400).json({ ok: false, error: "api_hash phai gom 32 ky tu hex (lay tai my.telegram.org)" });
   }
   if (phone && !/^\+\d{8,15}$/.test(nextPhone)) {
-    return res
-      .status(400)
-      .json({ ok: false, error: "So dien thoai khong hop le. Nhap kem ma quoc gia, vd +8490xxxxxxx." });
+    return res.status(400).json({
+      ok: false,
+      error: "So dien thoai khong hop le (dung nhap so da mask). Nhap day du dang +8490xxxxxxx.",
+    });
   }
 
   const nextSession = {

@@ -671,3 +671,15 @@ textarea {
   accent-color: var(--primary);
   cursor: pointer;
 }
+
+.warn-text {
+  display: block;
+  margin-top: 6px;
+  color: var(--amber);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.warn-text.hidden {
+  display: none;
+}

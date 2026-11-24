@@ -98,6 +98,14 @@ async function main() {
   if (!apiId || !apiHash || !phone) {
     throw new Error("Thieu TELEGRAM_API_ID / TELEGRAM_API_HASH / TELEGRAM_PHONE");
   }
+  if (!/^[0-9a-f]{32}$/i.test(String(apiHash))) {
+    throw new Error("api_hash khong hop le (phai gom 32 ky tu hex). Kiem tra lai tai my.telegram.org.");
+  }
+  if (!/^\+\d{8,15}$/.test(phone)) {
+    throw new Error(
+      "So dien thoai khong hop le (co the dang bi mask +84***567). Nhap lai day du dang +8490xxxxxxx.",
+    );
+  }
 
   const forceSMS = String(process.env.TELEGRAM_FORCE_SMS || "") === "1";
 

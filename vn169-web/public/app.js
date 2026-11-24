@@ -198,6 +198,7 @@ function renderStatus(status) {
   if (!app.configPrefilled) {
     prefillConfig(status.config || {});
   }
+  renderPhoneWarning(status.config || {});
 }
 
 function updateCountdown() {
@@ -356,10 +357,31 @@ function connectLogs() {
 // config
 // ---------------------------------------------------------------------------
 function prefillConfig(config) {
-  if (config.apiId) $("apiId").value = config.apiId;
-  if (config.phone) $("phone").value = config.phone;
-  if (config.dropUsername) $("dropUsername").value = config.dropUsername;
+  if (config.apiId && !$("apiId").value) $("apiId").value = config.apiId;
+
+  // Khong dien so dien thoai da mask vao input: neu nguoi dung bam Luu
+  // se ghi de so that bang "+84***567" -> Telegram khong gui ma duoc.
+  const phoneInput = $("phone");
+  if (config.phone) {
+    phoneInput.placeholder = `Đang dùng: ${config.phone} — để trống nếu không đổi`;
+  }
+
+  if (config.dropUsername && !$("dropUsername").value) $("dropUsername").value = config.dropUsername;
   app.configPrefilled = true;
+}
+
+function renderPhoneWarning(config) {
+  const phone = String(config?.phone || "");
+  const warn = $("phoneWarn");
+  if (!warn) return;
+  const invalid = phone && (phone.includes("*") || !/^\+\d{8,15}$/.test(phone));
+  if (invalid) {
+    warn.textContent =
+      "Số Telegram đang lưu không hợp lệ (bị mask). Nhập lại số đầy đủ dạng +8490xxxxxxx rồi bấm Lưu cấu hình.";
+    warn.classList.remove("hidden");
+  } else {
+    warn.classList.add("hidden");
+  }
 }
 
 async function saveConfig(event) {
