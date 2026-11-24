@@ -56,6 +56,7 @@ function saveSessionData(data) {
 }
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+let lastTelegramError = "";
 
 function askLine() {
   return new Promise((resolve) => rl.question("", (answer) => resolve(String(answer || "").trim())));
@@ -74,6 +75,15 @@ async function askValue(label, envValue, savedValue, { secret = false } = {}) {
   return answer;
 }
 
+function normalizePhone(raw) {
+  let value = String(raw || "").replace(/[\s\-().]/g, "");
+  if (!value) return "";
+  if (value.startsWith("00")) value = `+${value.slice(2)}`;
+  if (value.startsWith("0")) value = `+84${value.slice(1)}`;
+  if (/^\d{9,15}$/.test(value)) value = `+${value}`;
+  return value;
+}
+
 async function main() {
   const saved = loadSessionData();
 
@@ -81,32 +91,66 @@ async function main() {
     await askValue("Nhap TELEGRAM_API_ID:", process.env.TELEGRAM_API_ID, saved.api_id),
   );
   const apiHash = await askValue("Nhap TELEGRAM_API_HASH:", process.env.TELEGRAM_API_HASH, saved.api_hash);
-  const phone = await askValue(
-    "Nhap so dien thoai Telegram (vd +8490xxxxxxx):",
-    process.env.TELEGRAM_PHONE,
-    saved.phone,
+  const phone = normalizePhone(
+    await askValue("Nhap so dien thoai Telegram (vd +8490xxxxxxx):", process.env.TELEGRAM_PHONE, saved.phone),
   );
 
   if (!apiId || !apiHash || !phone) {
     throw new Error("Thieu TELEGRAM_API_ID / TELEGRAM_API_HASH / TELEGRAM_PHONE");
   }
 
+  const forceSMS = String(process.env.TELEGRAM_FORCE_SMS || "") === "1";
+
   const client = new TelegramClient(new StringSession(saved.session), apiId, apiHash, {
     connectionRetries: 5,
   });
 
+  console.log(`[login] Dang ket noi Telegram va gui ma xac minh toi ${phone}...`);
+  if (forceSMS) console.log("[login] Che do: yeu cau gui ma qua SMS (forceSMS).");
+
   await client.start({
     phoneNumber: async () => phone,
-    password: async () => {
-      console.log("Nhap mat khau 2FA (neu co):");
+    forceSMS,
+    password: async (hint) => {
+      console.log(hint ? `Nhap mat khau 2FA (goi y: ${hint}):` : "Nhap mat khau 2FA (neu co):");
       return askLine();
     },
-    phoneCode: async () => {
+    phoneCode: async (isCodeViaApp) => {
+      if (isCodeViaApp) {
+        console.log("[login] Telegram da gui ma VAO APP TELEGRAM (chat 'Telegram'), khong phai SMS.");
+        console.log("[login] Mo Telegram tren dien thoai/may tinh khac de lay ma, roi nhap vao day.");
+      } else {
+        console.log("[login] Telegram da gui ma qua SMS toi so dien thoai.");
+      }
       console.log("Nhap ma xac minh Telegram:");
       return askLine();
     },
     onError: (err) => {
-      throw err;
+      const message = String(err?.errorMessage || err?.message || err);
+      lastTelegramError = message;
+      console.log(`[login] Loi Telegram: ${message}`);
+
+      if (/PHONE_CODE_(INVALID|EMPTY)/i.test(message)) {
+        console.log("[login] Ma khong dung. Nhap lai ma:");
+        return false;
+      }
+      if (/PHONE_CODE_EXPIRED/i.test(message)) {
+        console.log("[login] Ma da het han. Bam Huy roi Bat dau lai de nhan ma moi.");
+        return true;
+      }
+      if (/FLOOD/i.test(message)) {
+        console.log("[login] Telegram dang gioi han (FLOOD_WAIT). Cho 5-10 phut roi thu lai.");
+        return true;
+      }
+      if (/API_ID_INVALID|API_ID_PUBLISHED_FLOOD/i.test(message)) {
+        console.log("[login] api_id/api_hash khong hop le. Kiem tra lai tai my.telegram.org.");
+        return true;
+      }
+      if (/PHONE_NUMBER_INVALID/i.test(message)) {
+        console.log("[login] So dien thoai khong hop le. Nhap lai kem ma quoc gia, vd +8490xxxxxxx.");
+        return true;
+      }
+      return true;
     },
   });
 
@@ -126,7 +170,12 @@ async function main() {
 main()
   .then(() => process.exit(0))
   .catch((err) => {
-    console.error(`[login] That bai: ${err?.message || err}`);
+    const message = String(err?.message || err);
+    if (message === "AUTH_USER_CANCEL" && lastTelegramError) {
+      console.log(`[login] Da dung do loi: ${lastTelegramError}`);
+    } else {
+      console.error(`[login] That bai: ${message}`);
+    }
     rl.close();
     process.exit(1);
   });

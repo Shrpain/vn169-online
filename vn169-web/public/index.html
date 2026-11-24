@@ -173,10 +173,18 @@
             Bấm <b>Bắt đầu đăng nhập</b>, sau đó nhập mã xác minh (và mật khẩu 2FA nếu có) vào ô bên dưới.
             Cần lưu <code>api_id</code> / <code>api_hash</code> / <code>phone</code> ở tab Cấu hình trước.
           </p>
+          <p class="hint">
+            <b>Lưu ý:</b> Telegram thường gửi mã vào <b>app Telegram</b> (chat “Telegram”), không phải SMS.
+            Nếu không thấy mã, bật “Gửi mã qua SMS” rồi Huỷ và Bắt đầu lại.
+          </p>
           <div class="row">
             <button id="loginStartBtn" class="primary" type="button">Bắt đầu đăng nhập</button>
             <button id="loginCancelBtn" class="danger" type="button">Huỷ</button>
           </div>
+          <label class="check-row">
+            <input id="loginForceSms" type="checkbox" />
+            <span>Gửi mã qua SMS (nếu không thấy mã trong app Telegram)</span>
+          </label>
 
           <pre id="loginLog" class="logbox login"></pre>
 

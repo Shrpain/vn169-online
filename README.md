@@ -40,6 +40,7 @@ Repo này đóng gói toàn bộ tool `vn169` + web dashboard (UI + API cùng m�
 
 1. Tab **Cấu hình**: nhập `API ID`, `API Hash`, số điện thoại Telegram, tài khoản/mật khẩu game, bot token → **Lưu**.
 2. Tab **Đăng nhập**: **Bắt đầu đăng nhập** → nhập mã OTP / 2FA → Enter.
+   Telegram thường gửi mã vào **app Telegram** (chat “Telegram”). Không thấy mã thì bật **Gửi mã qua SMS**, bấm Huỷ rồi Bắt đầu lại.
 3. Tab **Cấu hình → Session để chạy cloud**: **Xuất session** → **Copy JSON**.
 4. Vào Render **Environment**, thêm các biến:
 
@@ -171,6 +172,7 @@ Thứ tự ưu tiên: **env > `watcher_state.json` > mặc định**.
 | Lỗi | Cách xử lý |
 |---|---|
 | `Chua co Telegram session` | Đăng nhập qua tab Đăng nhập, hoặc set `TELEGRAM_SESSION` |
+| Không nhận được mã xác minh | Telegram gửi mã vào **app Telegram** (chat “Telegram”), không phải SMS. Bật **Gửi mã qua SMS** + Huỷ/Bắt đầu lại. Kiểm tra số `+84...`, api_id/api_hash, hoặc chờ nếu `FLOOD_WAIT` |
 | Service sleep, watcher dừng | Bật keep-alive workflow + set `APP_URL` |
 | `Conflict (409)` bot | Có instance khác poll cùng bot token; dừng instance cũ |
 | Build fail `npm ci` | Xoá `package-lock.json` không khớp hoặc dùng `npm install` trong `buildCommand` |

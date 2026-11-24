@@ -79,6 +79,16 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2), "utf8");
 }
 
+// Chuan hoa so dien thoai: bo khoang trang, 0 -> +84, them + neu thieu.
+function normalizePhone(raw) {
+  let value = String(raw || "").replace(/[\s\-().]/g, "");
+  if (!value) return "";
+  if (value.startsWith("00")) value = `+${value.slice(2)}`;
+  if (value.startsWith("0")) value = `+84${value.slice(1)}`;
+  if (/^\d{9,15}$/.test(value)) value = `+${value}`;
+  return value;
+}
+
 function readSessionData() {
   let fileData = { session: "", api_id: "", api_hash: "", phone: "" };
 
@@ -208,7 +218,7 @@ function isLoginRunning() {
   return Boolean(loginProc && loginProc.exitCode === null && !loginProc.killed);
 }
 
-function startLogin() {
+function startLogin(options = {}) {
   if (isWatcherRunning()) {
     return { ok: false, message: "Hay dung watcher truoc khi dang nhap lai Telegram" };
   }
@@ -224,10 +234,13 @@ function startLogin() {
 
   loginProc = spawn(process.execPath, [LOGIN_ENTRY], {
     cwd: WATCHER_DIR,
-    env: { ...process.env },
+    env: { ...process.env, TELEGRAM_FORCE_SMS: options.forceSMS ? "1" : "" },
     stdio: ["pipe", "pipe", "pipe"],
   });
-  pushLog(`[web] Bat dau dang nhap Telegram (PID ${loginProc.pid})`, "login");
+  pushLog(
+    `[web] Bat dau dang nhap Telegram (PID ${loginProc.pid}${options.forceSMS ? ", yeu cau SMS" : ""})`,
+    "login",
+  );
 
   attachLineReader(loginProc.stdout, (line) => pushLog(line, "login"));
   attachLineReader(loginProc.stderr, (line) => pushLog(line, "login"));
@@ -301,20 +314,36 @@ app.post("/api/config", requireAuth, (req, res) => {
   const { apiId, apiHash, phone, session, dropUsername, dropPassword, botToken } = req.body || {};
   const current = readSessionData();
 
+  const nextApiId = apiId ? String(apiId).trim() : current.api_id;
+  const nextApiHash = apiHash ? String(apiHash).trim() : current.api_hash;
+  const nextPhone = phone ? normalizePhone(phone) : current.phone;
+
+  if (apiId && !/^\d{3,}$/.test(nextApiId)) {
+    return res.status(400).json({ ok: false, error: "api_id phai la day so (lay tai my.telegram.org)" });
+  }
+  if (apiHash && !/^[0-9a-f]{32}$/i.test(nextApiHash)) {
+    return res.status(400).json({ ok: false, error: "api_hash phai gom 32 ky tu hex (lay tai my.telegram.org)" });
+  }
+  if (phone && !/^\+\d{8,15}$/.test(nextPhone)) {
+    return res
+      .status(400)
+      .json({ ok: false, error: "So dien thoai khong hop le. Nhap kem ma quoc gia, vd +8490xxxxxxx." });
+  }
+
   const nextSession = {
     session: typeof session === "string" && session.trim() ? session.trim() : current.session,
-    api_id: apiId ? String(apiId) : current.api_id,
-    api_hash: apiHash || current.api_hash,
-    phone: phone || current.phone,
+    api_id: nextApiId,
+    api_hash: nextApiHash,
+    phone: nextPhone,
   };
   writeJson(SESSION_PATH, nextSession);
 
   const cfg = readJson(DROP_CONFIG_PATH, {});
   if (dropUsername) cfg.drop_username = String(dropUsername);
   if (dropPassword) cfg.drop_password = String(dropPassword);
-  if (apiId) cfg.api_id = String(apiId);
-  if (apiHash) cfg.api_hash = apiHash;
-  if (phone) cfg.phone = phone;
+  if (apiId) cfg.api_id = nextApiId;
+  if (apiHash) cfg.api_hash = nextApiHash;
+  if (phone) cfg.phone = nextPhone;
   writeJson(DROP_CONFIG_PATH, cfg);
 
   if (typeof botToken === "string" && botToken.trim()) {
@@ -386,8 +415,8 @@ app.post("/api/restart", requireAuth, (_req, res) => {
   res.json(startWatcher());
 });
 
-app.post("/api/login/start", requireAuth, (_req, res) => {
-  res.json(startLogin());
+app.post("/api/login/start", requireAuth, (req, res) => {
+  res.json(startLogin({ forceSMS: Boolean(req.body?.forceSMS) }));
 });
 
 app.post("/api/login/input", requireAuth, (req, res) => {

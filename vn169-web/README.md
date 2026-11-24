@@ -62,6 +62,7 @@ Mở: **http://127.0.0.1:3000**
 
 1. Tab **Cấu hình**: nhập `API ID`, `API Hash`, số điện thoại, tài khoản/mật khẩu game, bot token → **Lưu cấu hình**.
 2. Tab **Đăng nhập**: bấm **Bắt đầu đăng nhập** → nhập mã xác minh Telegram (và 2FA nếu có) vào ô bên dưới → Enter.
+   Telegram thường gửi mã vào **app Telegram** (chat “Telegram”), không phải SMS. Nếu không thấy, bật **Gửi mã qua SMS** rồi Huỷ và Bắt đầu lại.
 3. Khi log báo `Dang nhap thanh cong`, session đã lưu vào `vn169/telegram_session.txt`.
 4. Tab **Tổng quan**: bấm **Start**.
 
@@ -217,6 +218,12 @@ Lưu ý:
 |---|---|
 | `Chua co Telegram session` | Chưa đăng nhập. Vào tab Đăng nhập hoặc chạy CLI một lần. |
 | Login treo, không thấy prompt | Kiểm tra log nguồn `login`; đảm bảo đã lưu api_id/hash/phone trước khi bấm bắt đầu. |
+| Không nhận được mã xác minh | Telegram gửi mã vào **app Telegram** (chat “Telegram”) thay vì SMS. Mở Telegram trên thiết bị khác để lấy. Nếu vẫn không có: bật **Gửi mã qua SMS**, Huỷ rồi Bắt đầu lại. Kiểm tra số đúng định dạng `+84...`, api_id/api_hash đúng, và chờ nếu bị `FLOOD_WAIT`. |
+| Mã báo `PHONE_CODE_INVALID` | Nhập sai mã; nhập lại ngay trên ô input (không cần bấm Bắt đầu lại). |
+| Mã hết hạn (`PHONE_CODE_EXPIRED`) | Bấm Huỷ rồi Bắt đầu lại để nhận mã mới. |
+| `API_ID_INVALID` | api_id/api_hash sai hoặc dùng api_id của app khác; lấy lại tại my.telegram.org. |
+| `PHONE_NUMBER_INVALID` | Số sai/thiếu mã quốc gia; nhập dạng `+8490xxxxxxx`. |
+| `FLOOD_WAIT` | Telegram giới hạn gửi mã; chờ 5–10 phút rồi thử lại, tránh bấm liên tục. |
 | `Conflict (409)` ở bot | Có instance bot khác đang poll cùng token. Dừng instance cũ; kiểm tra `bot_poll.lock`. |
 | Start báo thiếu file | Sai `WATCHER_DIR`; kiểm tra `GET /api/health` trả về đường dẫn đúng. |
 | Log real-time không chạy | Reverse proxy đang buffer SSE; bật `proxy_buffering off`. |

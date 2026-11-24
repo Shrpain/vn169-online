@@ -505,10 +505,13 @@ function bindControls() {
 function bindLogin() {
   $("loginStartBtn").addEventListener("click", async () => {
     try {
-      const result = await api("/api/login/start", { method: "POST" });
+      const result = await api("/api/login/start", {
+        method: "POST",
+        body: JSON.stringify({ forceSMS: Boolean($("loginForceSms")?.checked) }),
+      });
       if (!result.ok) throw new Error(result.message);
       $("loginLog").innerHTML = "";
-      toast("Đã bắt đầu đăng nhập. Nhập mã khi được yêu cầu.", "success");
+      toast("Đã gửi yêu cầu mã. Kiểm tra app Telegram (chat “Telegram”) hoặc SMS.", "success");
       await refreshStatus();
     } catch (err) {
       toast(`Không bắt đầu được: ${err.message}`, "error");
