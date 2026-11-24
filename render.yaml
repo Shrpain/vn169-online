@@ -7,7 +7,7 @@ services:
     buildCommand: npm --prefix vn169 ci && npm --prefix vn169-web ci
     startCommand: node vn169-web/server.js
     healthCheckPath: /api/health
-    autoDeploy: true
+    autoDeployTrigger: commit
     envVars:
       - key: NODE_VERSION
         value: "20"
